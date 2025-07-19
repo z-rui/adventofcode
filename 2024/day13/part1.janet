@@ -7,29 +7,29 @@
       :int (/ ':d+ ,scan-number)}
     input))
 
-(defn solve-eqn [a b c d x y]
+(defn det [a b c d] (- (* a d) (* b c)))
+
+(defn solve-eqn
   ``Solve the equations
   au + cv = x
   bu + dv = y
   ``
-  (def D (- (* a d) (* b c)))
-  (def Du (- (* x d) (* c y)))
-  (def Dv (- (* a y) (* x b)))
+  [a b c d x y]
 
+  (def sol @[])
+  (def [D Du Dv] [(det a b c d)
+                  (det x y c d)
+                  (det a b x y)])
   (if (= D 0)
-    (let [sol @[]]
-      (if (and (= Du 0)
-               (= (mod x c) 0))
+    (do
+      (if (= 0 Du (mod x c))
         (array/push sol [0 (div x c)]))
-      (if (and (= Dv 0)
-               (= (mod x a) 0))
+      (if (= 0 Dv (mod x a))
         (array/push sol [(div x a) 0])))
-    (if (and (= (mod Du D) 0)
-             (= (mod Dv D) 0))
+    (if (= 0 (mod Du D) (mod Dv D))
       # Cramer's rule
-      [[(div Du D) (div Dv D)]]
-      # no integer solution
-      [])))
+      (array/push sol [(div Du D) (div Dv D)])))
+  sol)
 
 (defn solve-case [input-case]
   (defn cost [[u v]] (+ (* u 3) v))
