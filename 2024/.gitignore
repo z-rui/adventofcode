@@ -1,0 +1,9 @@
+# AoC doesn't want us to upload the real test cases
+real-input.txt
+
+# C stuff
+a.out
+perf.data*
+
+# Vim stuff
+*.swp
