@@ -2,7 +2,7 @@
 
 (defn reconstruct
   ``Find locations of tiles which are on one of the best paths through the maze.``
-  [cols grid-map cost-table source-pos dest-pos]
+  [cols cost-table source-pos dest-pos]
 
   (def rotate {(- cols) 1
                -1 (- cols)
@@ -48,5 +48,5 @@
 (defn main [&]
   (let [[cols start-pos end-pos grid-map] (parse-input (file/read stdin :all))]
     (def cost-table (dijkstra grid-map cols start-pos))
-    (def pathset (reconstruct cols grid-map cost-table start-pos end-pos))
+    (def pathset (reconstruct cols cost-table start-pos end-pos))
     (print (length pathset))))

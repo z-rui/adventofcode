@@ -35,23 +35,22 @@
     (when (and
             (= (grid-map pos) (chr "."))
             (< cost (get cost-table state math/inf)))
+      (put cost-table state cost)
       (heap/push queue [cost state])))
   # push initial state
   (maybe-enqueue 0 source-pos 1)
   (while (not (empty? queue))
     (def [cost state] (heap/pop queue))
     (def [pos dir] state)
-    (unless (has-key? cost-table state)
-      (put cost-table state cost)
-      # option 1: keep going
-      (let [pos* (+ pos dir)
-            cost* (+ cost 1)]
-        (maybe-enqueue cost* pos* dir))
-      # option 2: make a turn
-      (let [dir* (rotate dir)
-            cost* (+ cost 1000)]
-        (maybe-enqueue cost* pos dir*)
-        (maybe-enqueue cost* pos (- dir*)))))
+    # option 1: keep going
+    (let [pos* (+ pos dir)
+          cost* (+ cost 1)]
+      (maybe-enqueue cost* pos* dir))
+    # option 2: make a turn
+    (let [dir* (rotate dir)
+          cost* (+ cost 1000)]
+      (maybe-enqueue cost* pos dir*)
+      (maybe-enqueue cost* pos (- dir*))))
   cost-table)
 
 (defn final-score [cost-table dest-pos]
