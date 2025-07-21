@@ -20,11 +20,9 @@
                                 :when (= pos dest-pos)]
                             [cost state]))
         min-cost (first (first dest-states))]
-    (for k 0 (length dest-states)
-      (def [cost state] (dest-states k))
-      (if (= min-cost cost)
-        (maybe-enqueue state)
-        (break))))
+    (loop [[cost state] :in dest-states
+           :while (= cost min-cost)]
+      (maybe-enqueue state)))
   # going backwards, adding all states whose cost matches optimal cost
   (var n 0)
   (while (< n (length queue))
