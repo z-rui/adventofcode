@@ -26,15 +26,14 @@
 (defn solve [text]
   (label solution
     (defn recur [ra pc]
-      (if (< pc 0) (break ra))
+      (if (< pc 0) (return solution ra))
       (def val (text pc))
       (for t 0 8
         (def ra* (+ (blshift ra 3) t))
         (var ok false)
         (when (= val (int/to-number
                        (band 7 (bxor t 5 (brshift ra* (bxor t 2))))))
-          (when-let [sol (recur ra* (- pc 1))]
-            (return solution sol)))))
+          (recur ra* (- pc 1)))))
     # Too bad Janet can only do 32-bit bitwise operations
     # on native numbers, but the target is 48 bits.
     # Therefore, using int/u64 to handle that.
