@@ -32,7 +32,7 @@
 (defn main [&]
   (def result @{})
   (each line (file/lines stdin)
-    (buffer/popn line 1)  # remove "\n"
+    (buffer/popn line 1) # remove "\n"
     (def num (scan-number line))
     (merge-sequence-values result
                            (compute-sequence-values 2000 num)))

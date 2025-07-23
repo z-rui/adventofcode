@@ -7,7 +7,7 @@
 
 (var accum 0)
 (each line (file/lines stdin)
-  (buffer/popn line 1)  # remove "\n"
+  (buffer/popn line 1) # remove "\n"
   (var num (scan-number line))
   (repeat 2000
     (set num (next-secret-number num)))
