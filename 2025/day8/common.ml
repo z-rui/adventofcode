@@ -47,4 +47,4 @@ let build_edge_heap nodes =
         { src = i; dst = j; dist_sq = dist_sq nodes.(i) nodes.(j) }
     done
   done;
-  EdgeMinHeap.of_array (Dynarray.to_array edges)
+  EdgeMinHeap.of_iter Dynarray.iter edges
