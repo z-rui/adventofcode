@@ -1,0 +1,3 @@
+(executables
+ (names part1 part2)
+ (libraries lp lp-glpk))

@@ -1,1 +1,10 @@
 (lang dune 3.21)
+
+(generate_opam_files true)
+
+(package
+  (name aoc2025)
+  (depends
+    (ocaml (>= 5.4))
+    lp
+    lp-glpk))
