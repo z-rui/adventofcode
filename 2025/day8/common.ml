@@ -16,20 +16,35 @@ module Disjoint_set = struct
     t.(i') <- j'
 end
 
-let parse_input chan =
-  In_channel.input_lines chan
-  |> List.map (fun s -> Scanf.sscanf s "%d,%d,%d" (fun x y z -> (x, y, z)))
+type node = { x : int; y : int; z : int }
+type edge = { src : int; dst : int; dist_sq : int }
 
-let build_edges nodes =
-  let edge i (x1, y1, z1) j (x2, y2, z2) =
-    let dx, dy, dz = (x1 - x2, y1 - y2, z1 - z2) in
-    let dist_sq = (dx * dx) + (dy * dy) + (dz * dz) in
-    (i, j, dist_sq)
+module EdgeMinHeap = Pqueue.MakeMin (struct
+  type t = edge
+
+  let compare { dist_sq = d1 } { dist_sq = d2 } = Int.compare d1 d2
+end)
+
+let parse_input chan =
+  let nodes = Dynarray.create () in
+  try
+    while true do
+      Scanf.bscanf chan "%d,%d,%d\n" @@ fun x y z ->
+      Dynarray.add_last nodes { x; y; z }
+    done
+  with End_of_file -> Dynarray.to_array nodes
+
+let build_edge_heap nodes =
+  let dist_sq u v =
+    let dx, dy, dz = (u.x - v.x, u.y - v.y, u.z - v.z) in
+    (dx * dx) + (dy * dy) + (dz * dz)
   in
-  let[@tail_mod_cons] rec loop i = function
-    | [] -> []
-    | x :: xs ->
-        List.mapi (fun j y -> edge i x (i + 1 + j) y) xs :: loop (i + 1) xs
-  in
-  loop 0 nodes |> List.concat
-  |> List.sort (fun (_, _, d1) (_, _, d2) -> Int.compare d1 d2)
+  let n = Array.length nodes in
+  let edges = Dynarray.create () in
+  for i = 0 to n - 1 do
+    for j = i + 1 to n - 1 do
+      Dynarray.add_last edges
+        { src = i; dst = j; dist_sq = dist_sq nodes.(i) nodes.(j) }
+    done
+  done;
+  EdgeMinHeap.of_array (Dynarray.to_array edges)

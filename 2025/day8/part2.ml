@@ -1,24 +1,27 @@
 open Common
 
 let solve nodes edges =
-  let node_count = List.length nodes in
+  let node_count = Array.length nodes in
+  let edge_cnt = ref 0 in
   let last_edge = ref None in
   let node_sets = Disjoint_set.create node_count in
-  List.iter
-    (fun ((a, b, _) as e) ->
-      let i = Disjoint_set.find node_sets a
-      and j = Disjoint_set.find node_sets b in
-      if i <> j then begin
-        last_edge := Some e;
-        Disjoint_set.union node_sets i j
-      end)
-    edges;
-  let a, b, _ = Option.get !last_edge in
-  let x1, _, _ = List.nth nodes a and x2, _, _ = List.nth nodes b in
-  x1 * x2
+  while !edge_cnt < node_count - 1 do
+    match EdgeMinHeap.pop_min edges with
+    | None -> failwith "not enough connections"
+    | Some ({ src; dst } as e) ->
+        let i = Disjoint_set.find node_sets src
+        and j = Disjoint_set.find node_sets dst in
+        if i <> j then begin
+          incr edge_cnt;
+          last_edge := Some e;
+          Disjoint_set.union node_sets i j
+        end
+  done;
+  let { src; dst } = Option.get !last_edge in
+  nodes.(src).x * nodes.(dst).x
 
 let () =
-  let nodes = parse_input stdin in
-  let edges = build_edges nodes in
+  let nodes = parse_input Scanf.Scanning.stdin in
+  let edges = build_edge_heap nodes in
   solve nodes edges |> print_int;
   print_newline ()
