@@ -1,14 +1,18 @@
 open Common
 module IntHashtbl = Hashtbl.Make (Int)
 
-module CompressedAxis : sig
+module type COMPRESS_COORD = sig
+  type coord
   type t
 
-  val of_seq : int Seq.t -> t
-  val compress : t -> int -> int
-  val decompress : t -> int -> int
-  val length : t -> int
-end = struct
+  val of_seq : coord Seq.t -> t
+  val compress : t -> coord -> coord
+  val decompress : t -> coord -> coord
+  val dim : t -> coord
+end
+
+module Compress1D : COMPRESS_COORD with type coord = int = struct
+  type coord = int
   type t = { compress : int IntHashtbl.t; decompress : int array }
 
   let of_seq seq =
@@ -30,31 +34,20 @@ end = struct
 
   let compress t x = IntHashtbl.find t.compress x
   let decompress t x = t.decompress.(x)
-  let length t = Array.length t.decompress
+  let dim t = Array.length t.decompress
 end
 
-module CompressedCoords : sig
-  type t
-
-  val of_seq : (int * int) Seq.t -> t
-  val create : (int * int) array -> t
-  val compress : t -> int * int -> int * int
-  val decompress : t -> int * int -> int * int
-  val dim : t -> int * int
-end = struct
-  type t = CompressedAxis.t * CompressedAxis.t
+module Compress2D : COMPRESS_COORD with type coord = int * int = struct
+  type coord = int * int
+  type t = Compress1D.t * Compress1D.t
 
   let of_seq seq =
     let xseq, yseq = Seq.unzip seq in
-    CompressedAxis.(of_seq xseq, of_seq yseq)
+    Compress1D.(of_seq xseq, of_seq yseq)
 
-  let create points = of_seq (Array.to_seq points)
-  let compress (tx, ty) (x, y) = CompressedAxis.(compress tx x, compress ty y)
-
-  let decompress (tx, ty) (x, y) =
-    CompressedAxis.(decompress tx x, decompress ty y)
-
-  let dim (tx, ty) = CompressedAxis.(length tx, length ty)
+  let compress (tx, ty) (x, y) = Compress1D.(compress tx x, compress ty y)
+  let decompress (tx, ty) (x, y) = Compress1D.(decompress tx x, decompress ty y)
+  let dim (tx, ty) = Compress1D.(dim tx, dim ty)
 end
 
 let sign x =
@@ -118,9 +111,9 @@ end
 
 (* brute force seems sufficient with coordinate compression *)
 let max_rectangle_area points =
-  let comp = CompressedCoords.create points in
-  let xsize, ysize = CompressedCoords.dim comp in
-  let points' = Array.map (CompressedCoords.compress comp) points in
+  let comp = Compress2D.of_seq (Array.to_seq points) in
+  let xsize, ysize = Compress2D.dim comp in
+  let points' = Array.map (Compress2D.compress comp) points in
   let bitmap = Bitmap.create points' xsize ysize in
   let check_rect (x1, y1) (x2, y2) =
     try
@@ -146,8 +139,8 @@ let max_rectangle_area points =
     for j = i + 1 to n - 1 do
       let p2 = points'.(j) in
       if check_rect p1 p2 then
-        let x1, y1 = CompressedCoords.decompress comp p1
-        and x2, y2 = CompressedCoords.decompress comp p2 in
+        let x1, y1 = Compress2D.decompress comp p1
+        and x2, y2 = Compress2D.decompress comp p2 in
         let area = (abs (x2 - x1) + 1) * (abs (y2 - y1) + 1) in
         if area > !max_area then max_area := area
     done
